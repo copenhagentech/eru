@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:7070
+
+POST {{baseUrl}}/ai/elaborate
+Content-Type: application/json
+
+{
+  "title": "Bananas are slightly radioactive",
+  "body": "Bananas contain potassium-40, which makes them very slightly radioactive."
+}
+
+###
+### Create content
+POST {{baseUrl}}/content
+Content-Type: application/json
+
+{
+  "title": "Did you know?",
+  "body": "Honey never spoils.",
+  "contentType": "FACT",
+  "category": "Science",
+  "source": "National Geographic",
+  "author": "Unknown Author"
+}
+
+### Get all content
+GET {{baseUrl}}/content
+
+### Get content by id
+GET {{baseUrl}}/content/1
+
+### Update content (PUT)
+PUT {{baseUrl}}/content/1
+Content-Type: application/json
+
+{
+  "title": "Did you know? (updated)",
+  "body": "Honey can stay edible for thousands of years.",
+  "contentType": "FACT",
+  "category": "Science",
+  "source": "Smithsonian",
+  "author": "Unknown Author"
+}
+
+
+### Delete content
+DELETE {{baseUrl}}/content/1
