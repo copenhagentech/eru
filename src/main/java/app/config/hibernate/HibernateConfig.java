@@ -25,8 +25,8 @@ public final class HibernateConfig {
     private static Properties buildProps() {
         Properties props = HibernateBaseProperties.createBase();
 
-        // Teaching-friendly default - change to update in production
-        props.put("hibernate.hbm2ddl.auto", "create");
+        // Keep the schema in sync without dropping existing development data
+        props.put("hibernate.hbm2ddl.auto", "update");
 
         if (System.getenv("DEPLOYED") != null) {
             setDeployedProperties(props);
@@ -44,12 +44,27 @@ public final class HibernateConfig {
     }
 
     private static void setDevProperties(Properties props) {
-        String dbName = Utils.getPropertyValue("DB_NAME", "config.properties");
-        String username = Utils.getPropertyValue("DB_USERNAME", "config.properties");
-        String password = Utils.getPropertyValue("DB_PASSWORD", "config.properties");
+        String dbName = resolveSetting("DB_NAME", "eru");
+        String username = resolveSetting("DB_USERNAME", "postgres");
+        String password = resolveSetting("DB_PASSWORD", "postgres");
+        String jdbcUrl = resolveSetting("DB_URL", "jdbc:postgresql://localhost:5432/" + dbName);
 
-        props.put("hibernate.connection.url", "jdbc:postgresql://localhost:5432/" + dbName);
+        props.put("hibernate.connection.url", jdbcUrl);
         props.put("hibernate.connection.username", username);
         props.put("hibernate.connection.password", password);
+    }
+
+    private static String resolveSetting(String key, String defaultValue) {
+        String envValue = System.getenv(key);
+        if (envValue != null && !envValue.isBlank()) {
+            return envValue.trim();
+        }
+
+        String configValue = Utils.getOptionalPropertyValue(key, "config.properties");
+        if (configValue != null && !configValue.isBlank()) {
+            return configValue.trim();
+        }
+
+        return defaultValue;
     }
 }

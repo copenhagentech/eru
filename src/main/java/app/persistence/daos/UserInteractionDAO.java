@@ -48,8 +48,17 @@ public class UserInteractionDAO implements IDAO<UserInteraction, Integer> {
         }
 
         try (EntityManager em = emf.createEntityManager()) {
-            UserInteraction interaction = em.find(UserInteraction.class, id);
-            return Optional.ofNullable(interaction);
+            List<UserInteraction> interactions = em.createQuery(
+                            "SELECT ui FROM UserInteraction ui " +
+                                    "JOIN FETCH ui.user " +
+                                    "JOIN FETCH ui.content " +
+                                    "WHERE ui.id = :id",
+                            UserInteraction.class
+                    )
+                    .setParameter("id", id)
+                    .setMaxResults(1)
+                    .getResultList();
+            return interactions.stream().findFirst();
         } catch (RuntimeException e) {
             throw new DatabaseException("Get interaction by id failed", DatabaseErrorType.UNKNOWN, e);
         }
@@ -58,7 +67,12 @@ public class UserInteractionDAO implements IDAO<UserInteraction, Integer> {
     @Override
     public List<UserInteraction> getAll() {
         try (EntityManager em = emf.createEntityManager()) {
-            return em.createQuery("SELECT ui FROM UserInteraction ui", UserInteraction.class)
+            return em.createQuery(
+                            "SELECT ui FROM UserInteraction ui " +
+                                    "JOIN FETCH ui.user " +
+                                    "JOIN FETCH ui.content",
+                            UserInteraction.class
+                    )
                     .getResultList();
         } catch (RuntimeException e) {
             throw new DatabaseException("Get all interactions failed", DatabaseErrorType.UNKNOWN, e);
@@ -113,7 +127,10 @@ public class UserInteractionDAO implements IDAO<UserInteraction, Integer> {
 
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT ui FROM UserInteraction ui WHERE ui.user.id = :userId",
+                            "SELECT ui FROM UserInteraction ui " +
+                                    "JOIN FETCH ui.user " +
+                                    "JOIN FETCH ui.content " +
+                                    "WHERE ui.user.id = :userId",
                             UserInteraction.class
                     )
                     .setParameter("userId", userId)
@@ -130,7 +147,10 @@ public class UserInteractionDAO implements IDAO<UserInteraction, Integer> {
 
         try (EntityManager em = emf.createEntityManager()) {
             return em.createQuery(
-                            "SELECT ui FROM UserInteraction ui WHERE ui.content.id = :contentId",
+                            "SELECT ui FROM UserInteraction ui " +
+                                    "JOIN FETCH ui.user " +
+                                    "JOIN FETCH ui.content " +
+                                    "WHERE ui.content.id = :contentId",
                             UserInteraction.class
                     )
                     .setParameter("contentId", contentId)
@@ -147,7 +167,10 @@ public class UserInteractionDAO implements IDAO<UserInteraction, Integer> {
 
         try (EntityManager em = emf.createEntityManager()) {
             List<UserInteraction> interactions = em.createQuery(
-                            "SELECT ui FROM UserInteraction ui WHERE ui.user.id = :userId AND ui.content.id = :contentId",
+                            "SELECT ui FROM UserInteraction ui " +
+                                    "JOIN FETCH ui.user " +
+                                    "JOIN FETCH ui.content " +
+                                    "WHERE ui.user.id = :userId AND ui.content.id = :contentId",
                             UserInteraction.class
                     )
                     .setParameter("userId", userId)

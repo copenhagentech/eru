@@ -14,7 +14,15 @@ import java.time.LocalDateTime;
 @ToString(exclude = {"user", "content"})
 @EqualsAndHashCode
 @Entity
-@Table(name = "user_interactions")
+@Table(
+        name = "user_interactions",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_user_interaction_user_content",
+                        columnNames = {"user_id", "content_id"}
+                )
+        }
+)
 public class UserInteraction {
 
     @Id

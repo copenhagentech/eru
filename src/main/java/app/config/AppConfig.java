@@ -2,15 +2,23 @@ package app.config;
 
 import app.controllers.AiController;
 import app.controllers.AuthController;
+import app.controllers.ContentController;
+import app.controllers.InteractionController;
 import app.persistence.daos.UserDAO;
+import app.persistence.daos.ContentDAO;
+import app.persistence.daos.UserInteractionDAO;
 import app.integration.openai.OpenAiClient;
 import app.integration.openai.OpenAiService;
 import app.exceptions.ApiException;
 import app.routes.AiRoutes;
 import app.routes.AuthRoutes;
+import app.routes.ContentRoutes;
+import app.routes.InteractionRoutes;
 import app.routes.SecurityRoutes;
 import app.security.JwtUtil;
 import app.services.AuthService;
+import app.services.ContentService;
+import app.services.InteractionService;
 import app.utils.Utils;
 import io.javalin.Javalin;
 import io.javalin.util.legacy.LegacyAccessManagerKt;
@@ -27,18 +35,25 @@ public class AppConfig {
     private static final int DEFAULT_PORT = 7070;
     private static final String DEFAULT_MODEL = "gpt-4.1-mini";
     private static final String CONFIG_FILE = "config.properties";
+    private static final String DEFAULT_JWT_SECRET = "dev-secret-change-me";
 
     public Javalin createApp() {
-        String apiKey = resolveApiKey();
-
-        OpenAiClient client = new OpenAiClient(apiKey, DEFAULT_MODEL);
-        OpenAiService openAiService = new OpenAiService(client);
+        OpenAiService openAiService = createOpenAiService();
         AiController aiController = new AiController(openAiService);
+        ContentService contentService = new ContentService(new ContentDAO());
+        ContentController contentController = new ContentController(contentService);
+        InteractionService interactionService = new InteractionService(
+                new UserInteractionDAO(),
+                new UserDAO(),
+                new ContentDAO()
+        );
+        InteractionController interactionController = new InteractionController(interactionService);
         JwtUtil jwtUtil = new JwtUtil(resolveJwtSecret());
         AuthService authService = new AuthService(new UserDAO(), jwtUtil);
         AuthController authController = new AuthController(authService);
 
         Javalin app = Javalin.create(config -> {
+            config.bundledPlugins.enableRouteOverview("/routes");
             config.routes.beforeMatched(ctx ->
                     logger.info("-> {} {}", ctx.method(), ctx.path())
             );
@@ -69,6 +84,8 @@ public class AppConfig {
             });
             AiRoutes.register(config.routes, aiController);
             AuthRoutes.register(config.routes, authController);
+            ContentRoutes.register(config.routes, contentController);
+            InteractionRoutes.register(config.routes, interactionController);
             SecurityRoutes.register(config.routes);
         });
 
@@ -82,6 +99,9 @@ public class AppConfig {
             try {
                 handler.handle(ctx);
             } catch (Exception e) {
+                if (e instanceof RuntimeException runtimeException) {
+                    throw runtimeException;
+                }
                 throw new RuntimeException(e);
             }
         });
@@ -94,24 +114,55 @@ public class AppConfig {
         logger.info("ERU API started on port {}", DEFAULT_PORT);
     }
 
+    private OpenAiService createOpenAiService() {
+        String apiKey = resolveApiKey();
+        if (apiKey == null) {
+            logger.warn("OPENAI_API_KEY was not found. /ai/elaborate will return a configuration error until it is set.");
+            return null;
+        }
+
+        String model = resolveOpenAiModel();
+        logger.info("OpenAI integration enabled with model {}", model);
+        OpenAiClient client = new OpenAiClient(apiKey, model);
+        return new OpenAiService(client);
+    }
+
     private String resolveApiKey() {
-        String envApiKey = System.getenv("OPENAI_API_KEY");
+        String envApiKey = resolveFirstEnvironmentValue("OPENAI_API_KEY", "ERU_API_KEY", "eru_api_key");
         if (envApiKey != null && !envApiKey.isBlank()) {
             return envApiKey.trim();
         }
 
-        try {
-            String configApiKey = Utils.getPropertyValue("OPENAI_API_KEY", CONFIG_FILE);
-            if (configApiKey != null && !configApiKey.isBlank()) {
-                return configApiKey;
-            }
-        } catch (RuntimeException ignored) {
+        String configApiKey = Utils.getOptionalPropertyValue("OPENAI_API_KEY", CONFIG_FILE);
+        if (configApiKey != null && !configApiKey.isBlank()) {
+            return configApiKey;
         }
 
-        throw new IllegalStateException(
-                "Missing OPENAI_API_KEY. Set environment variable OPENAI_API_KEY "
-                        + "or add OPENAI_API_KEY to src/main/resources/" + CONFIG_FILE
-        );
+        return null;
+    }
+
+    private String resolveFirstEnvironmentValue(String... keys) {
+        for (String key : keys) {
+            String value = System.getenv(key);
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private String resolveOpenAiModel() {
+        String envModel = System.getenv("OPENAI_MODEL");
+        if (envModel != null && !envModel.isBlank()) {
+            return envModel.trim();
+        }
+
+        String configModel = Utils.getOptionalPropertyValue("OPENAI_MODEL", CONFIG_FILE);
+        if (configModel != null && !configModel.isBlank()) {
+            return configModel.trim();
+        }
+
+        return DEFAULT_MODEL;
     }
 
     private String resolveJwtSecret() {
@@ -120,16 +171,12 @@ public class AppConfig {
             return envJwtSecret.trim();
         }
 
-        try {
-            String configJwtSecret = Utils.getPropertyValue("JWT_SECRET", CONFIG_FILE);
-            if (configJwtSecret != null && !configJwtSecret.isBlank()) {
-                return configJwtSecret;
-            }
-        } catch (RuntimeException ignored) {
+        String configJwtSecret = Utils.getOptionalPropertyValue("JWT_SECRET", CONFIG_FILE);
+        if (configJwtSecret != null && !configJwtSecret.isBlank()) {
+            return configJwtSecret;
         }
-        throw new IllegalStateException(
-                "Missing JWT_SECRET. Set environment variable JWT_SECRET "
-                        + "or add JWT_SECRET to src/main/resources/" + CONFIG_FILE
-        );
+
+        logger.warn("JWT_SECRET was not found. Falling back to a local development secret.");
+        return DEFAULT_JWT_SECRET;
     }
 }

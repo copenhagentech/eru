@@ -1,6 +1,4 @@
 package app.entities;
-
-import app.entities.enums.UserType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.mindrot.jbcrypt.BCrypt;
@@ -38,10 +36,6 @@ public class   User implements ISecurityUser {
 
     @Column(unique = true)
     private String email;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private UserType role;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -92,9 +86,6 @@ public class   User implements ISecurityUser {
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
-        }
-        if (role == null) {
-            role = UserType.USER;
         }
     }
 }

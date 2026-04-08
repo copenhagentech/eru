@@ -1,5 +1,36 @@
 @baseUrl = http://localhost:7070
+@authToken = paste-jwt-token-here
 
+### Health check
+GET {{baseUrl}}/health
+
+### Route overview
+GET {{baseUrl}}/routes
+
+### Register user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "student1",
+  "password": "secret123"
+}
+
+###
+### Login user
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "student1",
+  "password": "secret123"
+}
+
+### Current authenticated user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}
+
+###
 POST {{baseUrl}}/ai/elaborate
 Content-Type: application/json
 
@@ -12,6 +43,7 @@ Content-Type: application/json
 ### Create content
 POST {{baseUrl}}/content
 Content-Type: application/json
+Authorization: Bearer {{authToken}}
 
 {
   "title": "Did you know?",
@@ -25,12 +57,31 @@ Content-Type: application/json
 ### Get all content
 GET {{baseUrl}}/content
 
+### Get content filtered by type
+GET {{baseUrl}}/content?type=FACT
+
+### Get only active content
+GET {{baseUrl}}/content?activeOnly=true
+
 ### Get content by id
 GET {{baseUrl}}/content/1
+
+### Create or update interaction for content
+POST {{baseUrl}}/content/1/interactions
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "reactionType": "BOOKMARK"
+}
+
+### Get interactions for content
+GET {{baseUrl}}/content/1/interactions
 
 ### Update content (PUT)
 PUT {{baseUrl}}/content/1
 Content-Type: application/json
+Authorization: Bearer {{authToken}}
 
 {
   "title": "Did you know? (updated)",
@@ -44,3 +95,4 @@ Content-Type: application/json
 
 ### Delete content
 DELETE {{baseUrl}}/content/1
+Authorization: Bearer {{authToken}}

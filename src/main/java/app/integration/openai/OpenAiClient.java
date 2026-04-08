@@ -32,7 +32,7 @@ public class OpenAiClient {
         try {
             String prompt = """
                     Explain the following content in a simple, interesting, and educational way.
-                    Keep it concise and easy to understand. "
+                    Keep it concise and easy to understand.
 
                     Title: %s
 
@@ -81,8 +81,10 @@ public class OpenAiClient {
 
             throw new RuntimeException("Could not parse OpenAI response: " + response.body());
 
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            throw new RuntimeException("OpenAI request was interrupted", e);
+        } catch (IOException e) {
             throw new RuntimeException("Failed to call OpenAI API", e);
         }
     }

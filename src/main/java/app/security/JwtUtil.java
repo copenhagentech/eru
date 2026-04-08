@@ -37,10 +37,6 @@ public class JwtUtil {
                 .map(String::toUpperCase)
                 .collect(Collectors.toSet()));
 
-        if (roles.isEmpty() && user.getRole() != null) {
-            roles.add(user.getRole().name().toUpperCase());
-        }
-
         return JWT.create()
                 .withIssuer(issuer)
                 .withIssuedAt(now)

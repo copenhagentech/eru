@@ -13,6 +13,16 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "content")
+@NamedQueries({
+        @NamedQuery(
+                name = "Content.findAllActive",
+                query = "SELECT c FROM Content c WHERE c.active = true"
+        ),
+        @NamedQuery(
+                name = "Content.findByType",
+                query = "SELECT c FROM Content c WHERE c.contentType = :type"
+        )
+})
 public class Content {
 
     @Id
@@ -37,11 +47,14 @@ public class Content {
 
     private boolean active;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
         active = true;
     }
 }

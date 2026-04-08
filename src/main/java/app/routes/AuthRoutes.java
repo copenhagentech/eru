@@ -12,6 +12,7 @@ public class AuthRoutes {
     public static void register(JavalinDefaultRoutingApi routes, AuthController authController) {
         routes.post("/auth/register", authController::register, AppRole.ANYONE);
         routes.post("/auth/login", authController::login, AppRole.ANYONE);
+        routes.get("/auth/me", authController::me, AppRole.USER);
         routes.post("/auth/roles", authController::addRole, AppRole.ADMIN);
     }
 }

@@ -4,6 +4,7 @@ import app.dtos.internal.AuthenticatedUserDTO;
 import app.dtos.requests.AddRoleRequestDTO;
 import app.dtos.requests.AuthRequestDTO;
 import app.dtos.responses.AuthResponseDTO;
+import app.dtos.responses.CurrentUserDTO;
 import app.dtos.responses.UserDTO;
 import app.exceptions.ApiException;
 import app.security.AppRole;
@@ -51,6 +52,11 @@ public class AuthController {
         logger.info("Add role request username={} role={}", request.username(), request.role());
         UserDTO updatedUser = authService.addRole(request.username(), request.role());
         ctx.status(200).json(updatedUser);
+    }
+
+    public void me(Context ctx) {
+        AuthenticatedUserDTO authenticatedUser = getAuthenticatedUser(ctx);
+        ctx.status(200).json(CurrentUserDTO.fromAuthenticatedUser(authenticatedUser));
     }
 
     public void authenticate(Context ctx) {
@@ -135,6 +141,14 @@ public class AuthController {
 
     private static boolean isOpenEndpoint(Set<String> allowedRoles) {
         return allowedRoles.isEmpty() || allowedRoles.contains(AppRole.ANYONE.name());
+    }
+
+    private static AuthenticatedUserDTO getAuthenticatedUser(Context ctx) {
+        AuthenticatedUserDTO authenticatedUser = ctx.attribute(CTX_USER_KEY);
+        if (authenticatedUser == null) {
+            throw ApiException.unauthorized("No authenticated user found in request context");
+        }
+        return authenticatedUser;
     }
 
     private static Set<String> getAllowedRoles(Context ctx) {
