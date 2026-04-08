@@ -1,0 +1,8 @@
+### Elaborate content with AI
+POST {{url}}/ai/elaborate
+Content-Type: application/json
+
+{
+  "title": "Bananas are slightly radioactive",
+  "body": "Bananas contain potassium-40, which makes them very slightly radioactive."
+}

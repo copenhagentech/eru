@@ -1,0 +1,11 @@
+### API root
+GET {{url}}/
+Accept: application/json
+
+### Health check
+GET {{url}}/health
+Accept: application/json
+
+### Route overview
+GET {{url}}/routes
+Accept: application/json

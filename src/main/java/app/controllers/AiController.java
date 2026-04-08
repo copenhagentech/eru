@@ -19,7 +19,7 @@ public class AiController {
 
     public void elaborate(Context ctx) {
         if (openAiService == null) {
-            throw ApiException.configuration("AI integration is disabled. Set OPENAI_API_KEY to use /ai/elaborate");
+            throw ApiException.configuration("AI integration is disabled. Set OPENAI_API_KEY to use /api/v1/ai/elaborate");
         }
 
         ElaborateRequestDTO request = ctx.bodyAsClass(ElaborateRequestDTO.class);

@@ -5,6 +5,7 @@ import app.controllers.AuthController;
 import app.controllers.ContentController;
 import app.persistence.daos.ContentDAO;
 import app.persistence.daos.UserDAO;
+import app.routes.Routes;
 import app.services.AuthService;
 import app.services.ContentService;
 import app.security.JwtUtil;
@@ -232,7 +233,7 @@ class AuthContentRoutesTest {
             String body
     ) throws Exception {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:" + port + path))
+                .uri(URI.create("http://localhost:" + port + Routes.API_CONTEXT_PATH + path))
                 .header("Content-Type", "application/json");
 
         if (bearerToken != null) {

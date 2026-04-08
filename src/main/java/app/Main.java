@@ -1,6 +1,6 @@
 package app;
 
-import app.config.AppConfig;
+import app.config.ApplicationConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +10,6 @@ public class Main {
 
     public static void main(String[] args) {
         logger.info("Starting ERU API");
-        new AppConfig().start();
+        new ApplicationConfig().start();
     }
 }

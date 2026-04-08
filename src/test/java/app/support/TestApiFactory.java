@@ -5,6 +5,7 @@ import app.controllers.ContentController;
 import app.exceptions.ApiException;
 import app.routes.AuthRoutes;
 import app.routes.ContentRoutes;
+import app.routes.Routes;
 import io.javalin.Javalin;
 import io.javalin.util.legacy.LegacyAccessManagerKt;
 
@@ -22,6 +23,7 @@ public final class TestApiFactory {
             ContentController contentController
     ) {
         Javalin app = Javalin.create(config -> {
+            config.router.contextPath = Routes.API_CONTEXT_PATH;
             config.routes.exception(ApiException.class, (e, ctx) -> {
                 ctx.status(e.getCode()).json(Map.of(
                         "errorCode", e.getErrorCode().name(),

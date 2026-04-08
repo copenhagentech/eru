@@ -1,0 +1,60 @@
+### Create content
+POST {{url}}/content
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Did you know?",
+  "body": "Honey never spoils.",
+  "contentType": "FACT",
+  "category": "Science",
+  "source": "National Geographic",
+  "author": "Unknown Author"
+}
+
+### Get all content
+GET {{url}}/content
+Accept: application/json
+
+### Get content filtered by type
+GET {{url}}/content?type=FACT
+Accept: application/json
+
+### Get only active content
+GET {{url}}/content?activeOnly=true
+Accept: application/json
+
+### Get content by id
+GET {{url}}/content/1
+Accept: application/json
+
+### Update content
+PUT {{url}}/content/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Did you know? (updated)",
+  "body": "Honey can stay edible for thousands of years.",
+  "contentType": "FACT",
+  "category": "Science",
+  "source": "Smithsonian",
+  "author": "Unknown Author"
+}
+
+### Delete content
+DELETE {{url}}/content/1
+Authorization: Bearer {{token}}
+
+### Create or update interaction for content
+POST {{url}}/content/1/interactions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "reactionType": "BOOKMARK"
+}
+
+### Get interactions for content
+GET {{url}}/content/1/interactions
+Accept: application/json
