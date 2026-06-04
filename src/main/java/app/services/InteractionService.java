@@ -35,6 +35,8 @@ public class InteractionService {
         Content content = contentDAO.getById(contentId)
                 .orElseThrow(() -> ApiException.notFound("Content not found with id " + contentId));
 
+        deleteOppositeReaction(userId, contentId, reactionType);
+
         UserInteraction interaction = interactionDAO.getByUserAndContentAndReactionType(userId, contentId, reactionType)
                 .orElseGet(() -> UserInteraction.builder()
                         .user(user)
@@ -50,6 +52,35 @@ public class InteractionService {
                 : interactionDAO.update(interaction);
 
         return InteractionDTO.fromEntity(saved);
+    }
+
+    private void deleteOppositeReaction(Integer userId, Integer contentId, ReactionType reactionType) {
+        ReactionType oppositeReaction = switch (reactionType) {
+            case LIKE -> ReactionType.DISLIKE;
+            case DISLIKE -> ReactionType.LIKE;
+            default -> null;
+        };
+
+        if (oppositeReaction == null) {
+            return;
+        }
+
+        interactionDAO.getByUserAndContentAndReactionType(userId, contentId, oppositeReaction)
+                .ifPresent(interaction -> interactionDAO.delete(interaction.getId()));
+    }
+
+    public void delete(Integer userId, Integer contentId, ReactionType reactionType) {
+        if (reactionType == null) {
+            throw ApiException.badRequest("Reaction type is required");
+        }
+
+        UserInteraction interaction = interactionDAO
+                .getByUserAndContentAndReactionType(userId, contentId, reactionType)
+                .orElseThrow(() -> ApiException.notFound("Interaction not found"));
+
+        if (!interactionDAO.delete(interaction.getId())) {
+            throw ApiException.notFound("Interaction not found");
+        }
     }
 
     public List<InteractionDTO> getByContentId(Integer contentId) {

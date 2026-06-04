@@ -67,6 +67,12 @@ public class ApplicationConfig {
 
     private static void configurePlugins(JavalinConfig config) {
         config.router.contextPath = Routes.API_CONTEXT_PATH;
+        config.bundledPlugins.enableCors(cors ->
+                cors.addRule(rule -> {
+                    rule.anyHost();
+                })
+        );
+        config.bundledPlugins.enableHttpAllowedMethodsOnRoutes();
         config.bundledPlugins.enableRouteOverview("/routes");
     }
 

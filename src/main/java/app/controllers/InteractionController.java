@@ -41,6 +41,18 @@ public class InteractionController {
         ctx.status(200).json(interaction);
     }
 
+    public void delete(Context ctx) {
+        Integer contentId = parseId(ctx.pathParam("id"));
+        AuthenticatedUserDTO authenticatedUser = getAuthenticatedUser(ctx);
+        ReactionType reactionType = parseReactionType(ctx.queryParam("reactionType"));
+        if (reactionType == null) {
+            throw ApiException.badRequest("Reaction type is required");
+        }
+
+        interactionService.delete(authenticatedUser.userId(), contentId, reactionType);
+        ctx.status(204);
+    }
+
     public void getByContentId(Context ctx) {
         Integer contentId = parseId(ctx.pathParam("id"));
         List<InteractionDTO> interactions = interactionService.getByContentId(contentId);

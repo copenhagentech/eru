@@ -12,6 +12,7 @@ public class InteractionRoutes {
     public static void register(JavalinDefaultRoutingApi routes, InteractionController interactionController) {
         routes.get("/interactions/me", interactionController::getMyInteractions, AppRole.USER);
         routes.post("/content/{id}/interactions", interactionController::createOrUpdate, AppRole.USER);
+        routes.delete("/content/{id}/interactions", interactionController::delete, AppRole.USER);
         routes.get("/content/{id}/interactions", interactionController::getByContentId, AppRole.ANYONE);
     }
 }
